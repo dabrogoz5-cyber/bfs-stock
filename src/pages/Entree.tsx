@@ -1,24 +1,36 @@
-import { useState } from "react";
-import { useStock } from "../context/StockContext.jsx";
-import { exporterExcel } from "../utils/exporterExcel.js";
+import { useState, FormEvent, ChangeEvent } from "react";
+import { useStock } from "../context/StockContext.tsx";
+import { exporterExcel } from "../utils/exporterExcel.ts";
 
-function Entrées() {
+interface FormulaireEntree {
+  produit: string;
+  fournisseur: string;
+  quantite: string;
+  date: string;
+}
+
+interface Message {
+  type: "succes" | "erreur";
+  texte: string;
+}
+
+function Entrees() {
   const { produits, fournisseurs, entrees, ajouterEntree, calculerStock } = useStock();
 
-  const [formulaire, setFormulaire] = useState({
+  const [formulaire, setFormulaire] = useState<FormulaireEntree>({
     produit: "",
     fournisseur: "",
     quantite: "",
     date: "",
   });
 
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState<Message | null>(null);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormulaire({ ...formulaire, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage(null);
 
@@ -27,7 +39,12 @@ function Entrées() {
       return;
     }
 
-    const resultat = ajouterEntree(formulaire);
+    const resultat = await ajouterEntree({
+      produit: formulaire.produit,
+      fournisseur: formulaire.fournisseur,
+      quantite: Number(formulaire.quantite),
+      date: formulaire.date,
+    });
 
     if (resultat.success) {
       setMessage({ type: "succes", texte: resultat.message });
@@ -127,7 +144,9 @@ function Entrées() {
             ))}
 
             {entrees.length === 0 && (
-              <tr><td colSpan="4">Aucune entrée enregistrée.</td></tr>
+              <tr>
+                <td colSpan={4}>Aucune entrée enregistrée.</td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -136,4 +155,4 @@ function Entrées() {
   );
 }
 
-export default Entrées;
+export default Entrees;

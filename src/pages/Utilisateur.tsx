@@ -1,11 +1,19 @@
-import { useState } from "react";
-import { useStock } from "../context/StockContext.jsx";
-import { exporterExcel } from "../utils/exporterExcel.js";
+import { useState, FormEvent, ChangeEvent } from "react";
+import { useStock } from "../context/StockContext.tsx";
+import { exporterExcel } from "../utils/exporterExcel.ts";
+
+interface FormulaireUtilisateur {
+  nom: string;
+  username: string;
+  motDePasse: string;
+  role: string;
+  statut: string;
+}
 
 function Utilisateurs() {
   const { utilisateurs, ajouterUtilisateur, modifierUtilisateur, supprimerUtilisateur } = useStock();
 
-  const [formulaire, setFormulaire] = useState({
+  const [formulaire, setFormulaire] = useState<FormulaireUtilisateur>({
     nom: "",
     username: "",
     motDePasse: "",
@@ -13,9 +21,9 @@ function Utilisateurs() {
     statut: "Actif",
   });
 
-  const [modeEdition, setModeEdition] = useState(false);
-  const [utilisateurEnEdition, setUtilisateurEnEdition] = useState(null);
-  const [enCours, setEnCours] = useState(false);
+  const [modeEdition, setModeEdition] = useState<boolean>(false);
+  const [utilisateurEnEdition, setUtilisateurEnEdition] = useState<number | null>(null);
+  const [enCours, setEnCours] = useState<boolean>(false);
 
   const reinitialiserFormulaire = () => {
     setFormulaire({ nom: "", username: "", motDePasse: "", role: "Utilisateur", statut: "Actif" });
@@ -23,11 +31,11 @@ function Utilisateurs() {
     setUtilisateurEnEdition(null);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormulaire({ ...formulaire, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formulaire.nom || !formulaire.username) {
@@ -42,7 +50,7 @@ function Utilisateurs() {
 
     setEnCours(true);
 
-    if (modeEdition) {
+    if (modeEdition && utilisateurEnEdition !== null) {
       await modifierUtilisateur(utilisateurEnEdition, formulaire);
       reinitialiserFormulaire();
     } else {
@@ -60,7 +68,7 @@ function Utilisateurs() {
     setEnCours(false);
   };
 
-  const handleModifier = (utilisateur) => {
+  const handleModifier = (utilisateur: typeof utilisateurs[number]) => {
     setFormulaire({
       nom: utilisateur.nom,
       username: utilisateur.username,
@@ -72,7 +80,7 @@ function Utilisateurs() {
     setUtilisateurEnEdition(utilisateur.id);
   };
 
-  const handleSupprimer = (id) => {
+  const handleSupprimer = (id: number) => {
     if (window.confirm("Supprimer cet utilisateur ?")) {
       supprimerUtilisateur(id);
     }

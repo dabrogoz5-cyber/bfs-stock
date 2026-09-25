@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../context/AuthContext.tsx";
+import { useStock } from "../context/StockContext.tsx";
 
 function Connexion() {
   const navigate = useNavigate();
   const { connexion } = useAuth();
+  const { chargement } = useStock();
 
-  const [username, setUsername] = useState("");
-  const [motDePasse, setMotDePasse] = useState("");
-  const [erreur, setErreur] = useState("");
-  const [enCours, setEnCours] = useState(false);
+  const [username, setUsername] = useState<string>("");
+  const [motDePasse, setMotDePasse] = useState<string>("");
+  const [erreur, setErreur] = useState<string>("");
+  const [enCours, setEnCours] = useState<boolean>(false);
 
-  const handleConnexion = async (e) => {
+  const handleConnexion = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErreur("");
     setEnCours(true);
@@ -26,6 +28,10 @@ function Connexion() {
       setErreur(resultat.message);
     }
   };
+
+  if (chargement) {
+    return <div style={{ textAlign: "center", marginTop: 100 }}>Chargement...</div>;
+  }
 
   return (
     <div className="login-page">

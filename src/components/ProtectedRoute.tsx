@@ -1,7 +1,11 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../context/AuthContext.tsx";
 
-function ProtectedRoute({ rolesAutorises }) {
+interface ProtectedRouteProps {
+  rolesAutorises?: string[];
+}
+
+function ProtectedRoute({ rolesAutorises }: ProtectedRouteProps) {
   const { estConnecte, utilisateur, chargementAuth } = useAuth();
 
   if (chargementAuth) {
@@ -12,7 +16,7 @@ function ProtectedRoute({ rolesAutorises }) {
     return <Navigate to="/connexion" replace />;
   }
 
-  if (rolesAutorises && !rolesAutorises.includes(utilisateur.role)) {
+  if (rolesAutorises && utilisateur && !rolesAutorises.includes(utilisateur.role)) {
     return <Navigate to="/acces-refuse" replace />;
   }
 

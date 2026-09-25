@@ -1,24 +1,36 @@
-import { useState } from "react";
-import { useStock } from "../context/StockContext.jsx";
-import { exporterExcel } from "../utils/exporterExcel.js";
+import { useState, FormEvent, ChangeEvent } from "react";
+import { useStock } from "../context/StockContext.tsx";
+import { exporterExcel } from "../utils/exporterExcel.ts";
+
+interface FormulaireSortie {
+  produit: string;
+  destination: string;
+  quantite: string;
+  date: string;
+}
+
+interface Message {
+  type: "succes" | "erreur";
+  texte: string;
+}
 
 function Sorties() {
   const { produits, sorties, ajouterSortie, calculerStock } = useStock();
 
-  const [formulaire, setFormulaire] = useState({
+  const [formulaire, setFormulaire] = useState<FormulaireSortie>({
     produit: "",
     destination: "",
     quantite: "",
     date: "",
   });
 
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState<Message | null>(null);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormulaire({ ...formulaire, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage(null);
 
@@ -27,7 +39,12 @@ function Sorties() {
       return;
     }
 
-    const resultat = ajouterSortie(formulaire);
+    const resultat = await ajouterSortie({
+      produit: formulaire.produit,
+      destination: formulaire.destination,
+      quantite: Number(formulaire.quantite),
+      date: formulaire.date,
+    });
 
     if (resultat.success) {
       setMessage({ type: "succes", texte: resultat.message });
@@ -128,7 +145,9 @@ function Sorties() {
             ))}
 
             {sorties.length === 0 && (
-              <tr><td colSpan="4">Aucune sortie enregistrée.</td></tr>
+              <tr>
+                <td colSpan={4}>Aucune sortie enregistrée.</td>
+              </tr>
             )}
           </tbody>
         </table>

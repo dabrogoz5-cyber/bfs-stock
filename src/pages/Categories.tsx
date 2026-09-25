@@ -1,12 +1,18 @@
-import { useState } from "react";
-import { useStock } from "../context/StockContext.jsx";
+import { useState, FormEvent, ChangeEvent } from "react";
+import { useStock } from "../context/StockContext.tsx";
+import { exporterExcel } from "../utils/exporterExcel.ts";
+
+interface FormulaireCategorie {
+  nom: string;
+  description: string;
+}
 
 function Categories() {
   const { categories, ajouterCategorie, modifierCategorie, supprimerCategorie } = useStock();
 
-  const [formulaire, setFormulaire] = useState({ nom: "", description: "" });
-  const [modeEdition, setModeEdition] = useState(false);
-  const [categorieEnEdition, setCategorieEnEdition] = useState(null);
+  const [formulaire, setFormulaire] = useState<FormulaireCategorie>({ nom: "", description: "" });
+  const [modeEdition, setModeEdition] = useState<boolean>(false);
+  const [categorieEnEdition, setCategorieEnEdition] = useState<number | null>(null);
 
   const reinitialiserFormulaire = () => {
     setFormulaire({ nom: "", description: "" });
@@ -14,11 +20,11 @@ function Categories() {
     setCategorieEnEdition(null);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormulaire({ ...formulaire, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formulaire.nom) {
@@ -26,25 +32,34 @@ function Categories() {
       return;
     }
 
-    if (modeEdition) {
-      modifierCategorie(categorieEnEdition, formulaire);
+    if (modeEdition && categorieEnEdition !== null) {
+      await modifierCategorie(categorieEnEdition, formulaire);
     } else {
-      ajouterCategorie(formulaire);
+      await ajouterCategorie(formulaire);
     }
 
     reinitialiserFormulaire();
   };
 
-  const handleModifier = (categorie) => {
+  const handleModifier = (categorie: typeof categories[number]) => {
     setFormulaire({ nom: categorie.nom, description: categorie.description });
     setModeEdition(true);
     setCategorieEnEdition(categorie.id);
   };
 
-  const handleSupprimer = (id) => {
+  const handleSupprimer = (id: number) => {
     if (window.confirm("Supprimer cette catégorie ?")) {
       supprimerCategorie(id);
     }
+  };
+
+  const handleExporter = () => {
+    const donnees = categories.map((categorie) => ({
+      Nom: categorie.nom,
+      Description: categorie.description,
+    }));
+
+    exporterExcel(donnees, "Categories_BFS_Stock");
   };
 
   return (
@@ -76,7 +91,12 @@ function Categories() {
       </div>
 
       <div className="categorie-liste">
-        <h2>Liste des catégories ({categories.length})</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2>Liste des catégories ({categories.length})</h2>
+          <button onClick={handleExporter} style={{ background: "#16a34a" }}>
+            📊 Exporter Excel
+          </button>
+        </div>
 
         <table>
           <thead>
@@ -93,14 +113,16 @@ function Categories() {
                 <td>{categorie.nom}</td>
                 <td>{categorie.description}</td>
                 <td>
-                  <button onClick={() => handleModifier(categorie)} style={{ marginRight: 8 }}>✏️</button>
-                  <button className="btn-supprimer" onClick={() => handleSupprimer(categorie.id)}>Supprimer</button>
+                  <div className="actions-cell">
+                    <button className="btn-modifier" onClick={() => handleModifier(categorie)}>✏️</button>
+                    <button className="btn-supprimer" onClick={() => handleSupprimer(categorie.id)}>Supprimer</button>
+                  </div>
                 </td>
               </tr>
             ))}
 
             {categories.length === 0 && (
-              <tr><td colSpan="3">Aucune catégorie enregistrée.</td></tr>
+              <tr><td colSpan={3}>Aucune catégorie enregistrée.</td></tr>
             )}
           </tbody>
         </table>

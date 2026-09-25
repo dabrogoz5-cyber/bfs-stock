@@ -1,20 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import { AuthProvider } from "./context/AuthContext.jsx";
-import { StockProvider } from "./context/StockContext.jsx";
+import { AuthProvider } from "./context/AuthContext.tsx";
+import { StockProvider } from "./context/StockContext.tsx";
 
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import Layout from "./components/Layout.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import Layout from "./components/Layout.tsx";
 
-import Connexion from "./pages/Connexion.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import Produit from "./pages/Produit.jsx";
-import Categories from "./pages/Categories.jsx";
-import Fournisseur from "./pages/Fournisseur.jsx";
-import Entrées from "./pages/Entrées.jsx";
-import Sorties from "./pages/Sorties.jsx";
-import Utilisateurs from "./pages/Utilisateurs.jsx";
-import AccesRefuse from "./pages/AccesRefuse.jsx";
+import Connexion from "./pages/Connexion.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
+import Produit from "./pages/Produit.tsx";
+import Categories from "./pages/Categories.tsx";
+import Fournisseur from "./pages/Fournisseur.tsx";
+import Entree from "./pages/Entree.tsx";
+import Sorties from "./pages/Sorties.tsx";
+import Utilisateurs from "./pages/Utilisateur.tsx";
+import AccesRefuse from "./pages/AccesRefuse.tsx";
 
 function App() {
   return (
@@ -31,7 +31,7 @@ function App() {
                 <Route path="/produits" element={<Produit />} />
                 <Route path="/categories" element={<Categories />} />
                 <Route path="/fournisseurs" element={<Fournisseur />} />
-                <Route path="/entrees" element={<Entrées />} />
+                <Route path="/entrees" element={<Entree />} />
                 <Route path="/sorties" element={<Sorties />} />
                 <Route path="/acces-refuse" element={<AccesRefuse />} />
 

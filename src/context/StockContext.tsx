@@ -1,23 +1,106 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { supabase } from "../supabaseClient.js";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "../supabaseClient.ts";
 
-const StockContext = createContext();
+// =========================
+// TYPES
+// =========================
 
-export function StockProvider({ children }) {
+export interface Produit {
+  id: number;
+  nom: string;
+  reference: string;
+  categorie: string;
+  seuilMinimum: number;
+}
 
-  const [produits, setProduits] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [fournisseurs, setFournisseurs] = useState([]);
-  const [entrees, setEntrees] = useState([]);
-  const [sorties, setSorties] = useState([]);
-  const [utilisateurs, setUtilisateurs] = useState([]);
-  const [chargement, setChargement] = useState(true);
+export interface Categorie {
+  id: number;
+  nom: string;
+  description: string;
+}
 
-  // =========================
-  // CONVERSION DB -> APP (snake_case vers camelCase)
-  // =========================
+export interface Fournisseur {
+  id: number;
+  nom: string;
+  contact: string;
+  telephone: string;
+  email: string;
+}
 
-  const convertirProduit = (p) => ({
+export interface Entree {
+  id: number;
+  produit: string;
+  fournisseur: string;
+  quantite: number;
+  date: string;
+}
+
+export interface Sortie {
+  id: number;
+  produit: string;
+  destination: string;
+  quantite: number;
+  date: string;
+}
+
+export interface Utilisateur {
+  id: number;
+  nom: string;
+  username: string;
+  authId: string;
+  role: string;
+  statut: string;
+}
+
+interface ResultatOperation {
+  success: boolean;
+  message: string;
+}
+
+interface StockContextType {
+  produits: Produit[];
+  ajouterProduit: (produit: Omit<Produit, "id">) => Promise<void>;
+  modifierProduit: (id: number, produit: Omit<Produit, "id">) => Promise<void>;
+  supprimerProduit: (id: number) => Promise<void>;
+
+  categories: Categorie[];
+  ajouterCategorie: (categorie: Omit<Categorie, "id">) => Promise<void>;
+  modifierCategorie: (id: number, categorie: Omit<Categorie, "id">) => Promise<void>;
+  supprimerCategorie: (id: number) => Promise<void>;
+
+  fournisseurs: Fournisseur[];
+  ajouterFournisseur: (fournisseur: Omit<Fournisseur, "id">) => Promise<void>;
+  modifierFournisseur: (id: number, fournisseur: Omit<Fournisseur, "id">) => Promise<void>;
+  supprimerFournisseur: (id: number) => Promise<void>;
+
+  entrees: Entree[];
+  ajouterEntree: (entree: Omit<Entree, "id">) => Promise<ResultatOperation>;
+
+  sorties: Sortie[];
+  ajouterSortie: (sortie: Omit<Sortie, "id">) => Promise<ResultatOperation>;
+
+  utilisateurs: Utilisateur[];
+  ajouterUtilisateur: (utilisateur: any) => Promise<ResultatOperation>;
+  modifierUtilisateur: (id: number, utilisateur: any) => Promise<void>;
+  supprimerUtilisateur: (id: number) => Promise<void>;
+
+  calculerStock: (nomProduit: string) => number;
+  chargement: boolean;
+}
+
+const StockContext = createContext<StockContextType | undefined>(undefined);
+
+export function StockProvider({ children }: { children: ReactNode }) {
+
+  const [produits, setProduits] = useState<Produit[]>([]);
+  const [categories, setCategories] = useState<Categorie[]>([]);
+  const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
+  const [entrees, setEntrees] = useState<Entree[]>([]);
+  const [sorties, setSorties] = useState<Sortie[]>([]);
+  const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
+  const [chargement, setChargement] = useState<boolean>(true);
+
+  const convertirProduit = (p: any): Produit => ({
     id: p.id,
     nom: p.nom,
     reference: p.reference,
@@ -25,17 +108,14 @@ export function StockProvider({ children }) {
     seuilMinimum: p.seuil_minimum,
   });
 
-  const convertirUtilisateur = (u) => ({
-  id: u.id,
-  nom: u.nom,
-  username: u.username,
-  authId: u.auth_id,
-  role: u.role,
-  statut: u.statut,
-});
-  // =========================
-  // CHARGEMENT INITIAL DE TOUTES LES DONNEES
-  // =========================
+  const convertirUtilisateur = (u: any): Utilisateur => ({
+    id: u.id,
+    nom: u.nom,
+    username: u.username,
+    authId: u.auth_id,
+    role: u.role,
+    statut: u.statut,
+  });
 
   const chargerToutesLesDonnees = async () => {
     setChargement(true);
@@ -70,11 +150,7 @@ export function StockProvider({ children }) {
     chargerToutesLesDonnees();
   }, []);
 
-  // =========================
-  // CALCUL DU STOCK D'UN PRODUIT
-  // =========================
-
-  const calculerStock = (nomProduit) => {
+  const calculerStock = (nomProduit: string): number => {
     const totalEntrees = entrees
       .filter((e) => e.produit === nomProduit)
       .reduce((total, e) => total + Number(e.quantite), 0);
@@ -86,11 +162,7 @@ export function StockProvider({ children }) {
     return totalEntrees - totalSorties;
   };
 
-  // =========================
-  // PRODUITS - CRUD
-  // =========================
-
-  const ajouterProduit = async (produit) => {
+  const ajouterProduit = async (produit: Omit<Produit, "id">) => {
     const { data, error } = await supabase
       .from("produits")
       .insert({
@@ -107,7 +179,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  const modifierProduit = async (id, produitModifie) => {
+  const modifierProduit = async (id: number, produitModifie: Omit<Produit, "id">) => {
     const { data, error } = await supabase
       .from("produits")
       .update({
@@ -125,7 +197,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  const supprimerProduit = async (id) => {
+  const supprimerProduit = async (id: number) => {
     const { error } = await supabase.from("produits").delete().eq("id", id);
 
     if (!error) {
@@ -133,11 +205,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  // =========================
-  // CATEGORIES - CRUD
-  // =========================
-
-  const ajouterCategorie = async (categorie) => {
+  const ajouterCategorie = async (categorie: Omit<Categorie, "id">) => {
     const { data, error } = await supabase.from("categories").insert(categorie).select().single();
 
     if (!error && data) {
@@ -145,7 +213,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  const modifierCategorie = async (id, categorieModifiee) => {
+  const modifierCategorie = async (id: number, categorieModifiee: Omit<Categorie, "id">) => {
     const { data, error } = await supabase
       .from("categories")
       .update(categorieModifiee)
@@ -158,7 +226,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  const supprimerCategorie = async (id) => {
+  const supprimerCategorie = async (id: number) => {
     const { error } = await supabase.from("categories").delete().eq("id", id);
 
     if (!error) {
@@ -166,11 +234,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  // =========================
-  // FOURNISSEURS - CRUD
-  // =========================
-
-  const ajouterFournisseur = async (fournisseur) => {
+  const ajouterFournisseur = async (fournisseur: Omit<Fournisseur, "id">) => {
     const { data, error } = await supabase.from("fournisseurs").insert(fournisseur).select().single();
 
     if (!error && data) {
@@ -178,7 +242,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  const modifierFournisseur = async (id, fournisseurModifie) => {
+  const modifierFournisseur = async (id: number, fournisseurModifie: Omit<Fournisseur, "id">) => {
     const { data, error } = await supabase
       .from("fournisseurs")
       .update(fournisseurModifie)
@@ -191,7 +255,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  const supprimerFournisseur = async (id) => {
+  const supprimerFournisseur = async (id: number) => {
     const { error } = await supabase.from("fournisseurs").delete().eq("id", id);
 
     if (!error) {
@@ -199,11 +263,7 @@ export function StockProvider({ children }) {
     }
   };
 
-  // =========================
-  // AJOUTER UNE ENTREE
-  // =========================
-
-  const ajouterEntree = async (entree) => {
+  const ajouterEntree = async (entree: Omit<Entree, "id">): Promise<ResultatOperation> => {
     const nouvelleEntree = {
       produit: entree.produit,
       fournisseur: entree.fournisseur,
@@ -222,11 +282,7 @@ export function StockProvider({ children }) {
     return { success: true, message: "Entrée enregistrée avec succès." };
   };
 
-  // =========================
-  // AJOUTER UNE SORTIE
-  // =========================
-
-  const ajouterSortie = async (sortie) => {
+  const ajouterSortie = async (sortie: Omit<Sortie, "id">): Promise<ResultatOperation> => {
     const stockDisponible = calculerStock(sortie.produit);
 
     if (Number(sortie.quantite) > stockDisponible) {
@@ -254,50 +310,45 @@ export function StockProvider({ children }) {
     return { success: true, message: "Sortie enregistrée avec succès." };
   };
 
-  // =========================
-  // UTILISATEURS - CRUD
-  // =========================
+  const ajouterUtilisateur = async (utilisateur: any): Promise<ResultatOperation> => {
+    const { data, error } = await supabase.functions.invoke("create-user", {
+      body: {
+        nom: utilisateur.nom,
+        username: utilisateur.username,
+        motDePasse: utilisateur.motDePasse,
+        role: utilisateur.role,
+        statut: utilisateur.statut,
+      },
+    });
 
- const ajouterUtilisateur = async (utilisateur) => {
-  const { data, error } = await supabase.functions.invoke("create-user", {
-    body: {
-      nom: utilisateur.nom,
-      username: utilisateur.username,
-      motDePasse: utilisateur.motDePasse,
-      role: utilisateur.role,
-      statut: utilisateur.statut,
-    },
-  });
+    if (error || data?.error) {
+      return { success: false, message: data?.error || "Erreur lors de la création." };
+    }
 
-  if (error || data?.error) {
-    return { success: false, message: data?.error || "Erreur lors de la création." };
-  }
+    setUtilisateurs((anciens) => [...anciens, convertirUtilisateur(data.utilisateur)]);
 
-  setUtilisateurs((anciens) => [...anciens, convertirUtilisateur(data.utilisateur)]);
+    return { success: true, message: "Utilisateur créé avec succès." };
+  };
 
-  return { success: true, message: "Utilisateur créé avec succès." };
-};
+  const modifierUtilisateur = async (id: number, utilisateurModifie: any) => {
+    const { data, error } = await supabase
+      .from("utilisateurs")
+      .update({
+        nom: utilisateurModifie.nom,
+        username: utilisateurModifie.username,
+        role: utilisateurModifie.role,
+        statut: utilisateurModifie.statut,
+      })
+      .eq("id", id)
+      .select()
+      .single();
 
- const modifierUtilisateur = async (id, utilisateurModifie) => {
-  const { data, error } = await supabase
-    .from("utilisateurs")
-    .update({
-      nom: utilisateurModifie.nom,
-      username: utilisateurModifie.username,
-      role: utilisateurModifie.role,
-      statut: utilisateurModifie.statut,
-    })
-    .eq("id", id)
-    .select()
-    .single();
+    if (!error && data) {
+      setUtilisateurs((anciens) => anciens.map((u) => (u.id === id ? convertirUtilisateur(data) : u)));
+    }
+  };
 
-  if (!error && data) {
-    setUtilisateurs((anciens) => anciens.map((u) => (u.id === id ? convertirUtilisateur(data) : u)));
-  }
-};
-    
-
-  const supprimerUtilisateur = async (id) => {
+  const supprimerUtilisateur = async (id: number) => {
     const { error } = await supabase.from("utilisateurs").delete().eq("id", id);
 
     if (!error) {
@@ -323,6 +374,10 @@ export function StockProvider({ children }) {
   );
 }
 
-export function useStock() {
-  return useContext(StockContext);
+export function useStock(): StockContextType {
+  const context = useContext(StockContext);
+  if (!context) {
+    throw new Error("useStock doit être utilisé à l'intérieur d'un StockProvider");
+  }
+  return context;
 }

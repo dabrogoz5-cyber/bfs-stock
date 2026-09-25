@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 
-export function exporterExcel(donnees, nomFichier, nomFeuille = "Feuille1") {
+export function exporterExcel(donnees: Record<string, any>[], nomFichier: string, nomFeuille: string = "Feuille1"): void {
   if (!donnees || donnees.length === 0) {
     alert("Aucune donnée à exporter.");
     return;

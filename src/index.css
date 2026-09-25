@@ -1693,3 +1693,76 @@ tbody tr:hover {
 .form-group select {
   min-width: 0;
 }
+/* =====================================================
+   FINITIONS DESIGN
+===================================================== */
+
+/* --- Cartes statistiques : effet au survol --- */
+
+.stat-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Tableaux : zébrage léger pour la lisibilité --- */
+
+tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* --- État vide plus travaillé (Activité récente, listes vides) --- */
+
+.empty-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+}
+
+.empty-message::before {
+  content: "📭";
+  font-size: 32px;
+}
+
+/* --- Boutons : transition douce au survol --- */
+
+button {
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.btn-supprimer:hover {
+  background: #b91c1c;
+}
+
+/* --- Champs de formulaire : meilleur focus visuel --- */
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* --- Sidebar : transition douce sur les liens --- */
+
+.menu-link {
+  transition: background-color 0.15s ease;
+}

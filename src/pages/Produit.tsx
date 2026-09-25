@@ -1,6 +1,13 @@
-import { useState } from "react";
-import { useStock } from "../context/StockContext.jsx";
-import { exporterExcel } from "../utils/exporterExcel.js";
+import { useState, FormEvent, ChangeEvent } from "react";
+import { useStock } from "../context/StockContext.tsx";
+import { exporterExcel } from "../utils/exporterExcel.ts";
+
+interface FormulaireProduit {
+  nom: string;
+  reference: string;
+  categorie: string;
+  seuilMinimum: string;
+}
 
 function Produit() {
   const {
@@ -12,15 +19,15 @@ function Produit() {
     calculerStock,
   } = useStock();
 
-  const [formulaire, setFormulaire] = useState({
+  const [formulaire, setFormulaire] = useState<FormulaireProduit>({
     nom: "",
     reference: "",
     categorie: "",
     seuilMinimum: "",
   });
 
-  const [modeEdition, setModeEdition] = useState(false);
-  const [produitEnEdition, setProduitEnEdition] = useState(null);
+  const [modeEdition, setModeEdition] = useState<boolean>(false);
+  const [produitEnEdition, setProduitEnEdition] = useState<number | null>(null);
 
   const reinitialiserFormulaire = () => {
     setFormulaire({ nom: "", reference: "", categorie: "", seuilMinimum: "" });
@@ -28,11 +35,11 @@ function Produit() {
     setProduitEnEdition(null);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormulaire({ ...formulaire, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formulaire.nom || !formulaire.reference || !formulaire.categorie || !formulaire.seuilMinimum) {
@@ -40,27 +47,34 @@ function Produit() {
       return;
     }
 
-    if (modeEdition) {
-      modifierProduit(produitEnEdition, formulaire);
+    const donnees = {
+      nom: formulaire.nom,
+      reference: formulaire.reference,
+      categorie: formulaire.categorie,
+      seuilMinimum: Number(formulaire.seuilMinimum),
+    };
+
+    if (modeEdition && produitEnEdition !== null) {
+      await modifierProduit(produitEnEdition, donnees);
     } else {
-      ajouterProduit(formulaire);
+      await ajouterProduit(donnees);
     }
 
     reinitialiserFormulaire();
   };
 
-  const handleModifier = (produit) => {
+  const handleModifier = (produit: typeof produits[number]) => {
     setFormulaire({
       nom: produit.nom,
       reference: produit.reference,
       categorie: produit.categorie,
-      seuilMinimum: produit.seuilMinimum,
+      seuilMinimum: String(produit.seuilMinimum),
     });
     setModeEdition(true);
     setProduitEnEdition(produit.id);
   };
 
-  const handleSupprimer = (id) => {
+  const handleSupprimer = (id: number) => {
     if (window.confirm("Supprimer ce produit ?")) {
       supprimerProduit(id);
     }
@@ -164,7 +178,7 @@ function Produit() {
             })}
 
             {produits.length === 0 && (
-              <tr><td colSpan="6">Aucun produit enregistré.</td></tr>
+              <tr><td colSpan={6}>Aucun produit enregistré.</td></tr>
             )}
           </tbody>
         </table>

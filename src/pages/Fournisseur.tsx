@@ -1,19 +1,26 @@
-import { useState } from "react";
-import { useStock } from "../context/StockContext.jsx";
-import { exporterExcel } from "../utils/exporterExcel.js";
+import { useState, FormEvent, ChangeEvent } from "react";
+import { useStock } from "../context/StockContext.tsx";
+import { exporterExcel } from "../utils/exporterExcel.ts";
+
+interface FormulaireFournisseur {
+  nom: string;
+  contact: string;
+  telephone: string;
+  email: string;
+}
 
 function Fournisseur() {
   const { fournisseurs, ajouterFournisseur, modifierFournisseur, supprimerFournisseur } = useStock();
 
-  const [formulaire, setFormulaire] = useState({
+  const [formulaire, setFormulaire] = useState<FormulaireFournisseur>({
     nom: "",
     contact: "",
     telephone: "",
     email: "",
   });
 
-  const [modeEdition, setModeEdition] = useState(false);
-  const [fournisseurEnEdition, setFournisseurEnEdition] = useState(null);
+  const [modeEdition, setModeEdition] = useState<boolean>(false);
+  const [fournisseurEnEdition, setFournisseurEnEdition] = useState<number | null>(null);
 
   const reinitialiserFormulaire = () => {
     setFormulaire({ nom: "", contact: "", telephone: "", email: "" });
@@ -21,11 +28,11 @@ function Fournisseur() {
     setFournisseurEnEdition(null);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormulaire({ ...formulaire, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formulaire.nom) {
@@ -33,16 +40,16 @@ function Fournisseur() {
       return;
     }
 
-    if (modeEdition) {
-      modifierFournisseur(fournisseurEnEdition, formulaire);
+    if (modeEdition && fournisseurEnEdition !== null) {
+      await modifierFournisseur(fournisseurEnEdition, formulaire);
     } else {
-      ajouterFournisseur(formulaire);
+      await ajouterFournisseur(formulaire);
     }
 
     reinitialiserFormulaire();
   };
 
-  const handleModifier = (fournisseur) => {
+  const handleModifier = (fournisseur: typeof fournisseurs[number]) => {
     setFormulaire({
       nom: fournisseur.nom,
       contact: fournisseur.contact,
@@ -53,7 +60,7 @@ function Fournisseur() {
     setFournisseurEnEdition(fournisseur.id);
   };
 
-  const handleSupprimer = (id) => {
+  const handleSupprimer = (id: number) => {
     if (window.confirm("Supprimer ce fournisseur ?")) {
       supprimerFournisseur(id);
     }
@@ -144,7 +151,9 @@ function Fournisseur() {
             ))}
 
             {fournisseurs.length === 0 && (
-              <tr><td colSpan="5">Aucun fournisseur enregistré.</td></tr>
+              <tr>
+                <td colSpan={5}>Aucun fournisseur enregistré.</td>
+              </tr>
             )}
           </tbody>
         </table>
